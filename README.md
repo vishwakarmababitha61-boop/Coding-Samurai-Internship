@@ -1,46 +1,80 @@
-# AI Stock Price Prediction
+import yfinance as yf
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import numpy as np
+import matplotlib.pyplot as plt
 
-## 📌 Project Overview
+# Download historical stock data
+stock = yf.download(
+    "AAPL",
+    start="2020-01-01",
+    end="2025-01-01"
+)
 
-This project uses Machine Learning to predict the next day's Apple (AAPL) stock closing price based on historical stock price data.
+# Create dataset
+data = pd.DataFrame()
+data["Close"] = stock["Close"]
+data["Target"] = data["Close"].shift(-1)
 
-The project uses Linear Regression and evaluates the model using MAE, RMSE, and R² Score.
+# Remove missing values
+data = data.dropna()
 
-## 🛠️ Technologies Used
+# Features and target
+X = data[["Close"]]
+y = data["Target"]
 
-- Python
-- Pandas
-- NumPy
-- Scikit-learn
-- Matplotlib
-- yFinance
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    shuffle=False
+)
 
-## 📊 Dataset
+# Create Linear Regression model
+model = LinearRegression()
 
-Historical AAPL stock data is downloaded using the Yahoo Finance API through the `yfinance` Python library.
+# Train the model
+model.fit(X_train, y_train)
 
-Data period:
-- 2020-01-01 to 2025-01-01
+# Make predictions
+predictions = model.predict(X_test)
 
-## 🤖 Machine Learning Model
+# Evaluate the model
+mae = mean_absolute_error(y_test, predictions)
+rmse = np.sqrt(mean_squared_error(y_test, predictions))
+r2 = r2_score(y_test, predictions)
 
-**Linear Regression**
+print("Model trained successfully!")
+print("MAE:", mae)
+print("RMSE:", rmse)
+print("R² Score:", r2)
 
-The model uses the previous closing price to predict the next day's closing price.
+# Plot actual vs predicted prices
+plt.figure(figsize=(12, 6))
 
-## 📈 Model Results
+plt.plot(
+    y_test.values,
+    label="Actual Price"
+)
 
-- MAE: 2.15
-- RMSE: 2.90
-- R² Score: 0.987
+plt.plot(
+    predictions,
+    label="Predicted Price"
+)
 
-## 📉 Visualization
+plt.title("AAPL Stock Price: Actual vs Predicted")
+plt.xlabel("Test Data Points")
+plt.ylabel("Stock Price (USD)")
+plt.legend()
+plt.grid(True)
 
-The project generates a graph comparing the actual stock prices with the predicted stock prices.
+plt.tight_layout()
 
-## 🚀 How to Run
+# Save the graph
+plt.savefig("stock_prediction_graph.png")
 
-### 1. Clone the repository
-
-```bash
-git clone <YOUR-GITHUB-REPOSITORY-URL>
+# Display the graph
+plt.show()
